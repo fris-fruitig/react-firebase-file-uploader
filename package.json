@@ -1,6 +1,6 @@
 {
   "name": "react-firebase-image-uploader",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "An image uploader for react that uploads images to your firebase storage",
   "main": "lib/index.js",
   "scripts": {

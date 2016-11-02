@@ -38,7 +38,8 @@ type Props = {
 	onUploadSuccess?: (filename: string) => void,
 	onUploadError?: (error: FirebaseStorageError) => void,
 	name?: string,
-	children?: any
+	children?: any,
+	cacheControl?: string
 };
 
 type State = {
@@ -91,7 +92,13 @@ export default class FirebaseImageUploader extends Component {
 
 		// upload file
 		const imageName = generateImageName(file.name);
-		this.uploadTask = this.props.storageRef.child(imageName).put(file)
+		const metadata: {contentType: string, cacheControl?: string} = {
+			contentType: file.type,
+		}
+		if (this.props.cacheControl) {
+			metadata.cacheControl = this.props.cacheControl;
+		}
+		this.uploadTask = this.props.storageRef.child(imageName).put(file, metadata)
 		// Listen for progress
 		this.uploadTask.on('state_changed',
 			snapshot => this.handleProgress(snapshot),
