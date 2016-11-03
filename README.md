@@ -21,7 +21,7 @@ You can either use the callbacks of the component:
 ``` javascript
 import React, { Component } from 'react';
 import firebase from 'firebase';
-import ImageUploader form 'react-firebase-image-uploader';
+import ImageUploader from 'react-firebase-image-uploader';
 
 class ProfilePage extends Component {
     state = {
@@ -33,7 +33,7 @@ class ProfilePage extends Component {
     };
 
     handleChangeUsername = (event) => this.setState({username: event.target.value});
-    handleUploadStart = () => this.setState({isUploading: true, progress: 0};)
+    handleUploadStart = () => this.setState({isUploading: true, progress: 0});
     handleProgress = (progress) => this.setState({progress});
     handleUploadError = (error) => {
         this.setState({isUploading: false});
