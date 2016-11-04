@@ -41,7 +41,7 @@ class ProfilePage extends Component {
     }
     handleUploadSuccess = (filename) => {
         this.setState({avatar: filename, progress: 100, isUploading: false});
-        firebase.storage().ref('images').child(filename).getDownloadURL.then(url => this.setState({avatarURL: url}));
+        firebase.storage().ref('images').child(filename).getDownloadURL().then(url => this.setState({avatarURL: url}));
     };
 
     render() {
@@ -88,12 +88,12 @@ class ImageAndProgress extends Component {
     };
 
     componentDidMount() {
-        firebase.storage().ref('image').child(this.props.filename).getDownloadURL.then(url => this.setState({url}));
+        firebase.storage().ref('image').child(this.props.filename).getDownloadURL().then(url => this.setState({url}));
     }
 
     componentWillReceiveProps(next) {
         if (next.filename !== this.props.filename) {
-            firebase.storage().ref('image').child(next.filename).getDownloadURL.then(url => this.setState({url}));
+            firebase.storage().ref('image').child(next.filename).getDownloadURL().then(url => this.setState({url}));
         }
     }
 
