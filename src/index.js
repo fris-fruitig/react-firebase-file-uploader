@@ -1,3 +1,3 @@
 /* @flow */
-import FirebaseImageUploader from './FirebaseImageUploader';
-export default FirebaseImageUploader;
+import FirebaseFileUploader from './FirebaseFileUploader';
+export default FirebaseFileUploader;

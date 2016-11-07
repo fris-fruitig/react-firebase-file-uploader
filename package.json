@@ -1,7 +1,7 @@
 {
-  "name": "react-firebase-image-uploader",
-  "version": "1.1.0",
-  "description": "An image uploader for react that uploads images to your firebase storage",
+  "name": "react-firebase-file-uploader",
+  "version": "2.0.0",
+  "description": "A file uploader for react that uploads files to your firebase storage",
   "main": "lib/index.js",
   "scripts": {
     "build": "./node_modules/.bin/babel src --out-dir lib",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sprmn/react-firebase-image-uploader.git"
+    "url": "git+https://github.com/sprmn/react-firebase-file-uploader.git"
   },
   "keywords": [
     "react",
@@ -26,9 +26,9 @@
   "author": "Frank van der Hoek <frank.vanderhoek@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sprmn/react-firebase-image-uploader/issues"
+    "url": "https://github.com/sprmn/react-firebase-file-uploader/issues"
   },
-  "homepage": "https://github.com/sprmn/react-firebase-image-uploader#readme",
+  "homepage": "https://github.com/sprmn/react-firebase-file-uploader#readme",
   "peerDependencies": {
     "firebase": "^3.5.2",
     "react": "^15.3.2"
