@@ -21,6 +21,8 @@ type Props = {
   metadata?: Object,
   randomizeFilename?: boolean,
   as?: any,
+  maxWidth?: number,
+  maxHeight?: number,
   // default input props
   accept?: string,
   disabled?: boolean,
@@ -50,7 +52,7 @@ export default class FirebaseFileUploader extends Component {
 		}
 	};
 
-	startUpload(file: Object) {
+	startUpload(file: File) {
 		// Cancel any running tasks
 		this.cancelRunningUpload();
 
@@ -69,12 +71,21 @@ export default class FirebaseFileUploader extends Component {
     const currentFilename = filename || file.name;
     const filenameToUse = randomizeFilename ? generateRandomFilename(currentFilename) : currentFilename;
 
-    this.uploadTask = storageRef.child(filenameToUse).put(file, metadata);
-		this.uploadTask.on('state_changed',
-      this.progressHandler,
-      this.errorHandler,
-      this.successHandler,
-    );
+    Promise.resolve().then(() => {
+      const shouldResize = file.type.match(/image.*/) && (this.props.maxWidth || this.props.maxHeight);
+      if (shouldResize) {
+        return this.resizeAndCropImage(file);
+      }
+      return file;
+    })
+      .then(file => {
+        this.uploadTask = storageRef.child(filenameToUse).put(file, metadata);
+        this.uploadTask.on('state_changed',
+          this.progressHandler,
+          this.errorHandler,
+          this.successHandler,
+        );
+      })
 	};
 
 	progressHandler = (snapshot: Object) => {
@@ -100,9 +111,49 @@ export default class FirebaseFileUploader extends Component {
 		}
 	};
 
+  resizeAndCropImage(file: File) {
+    return new Promise((resolve, reject) => {
+      // Create file reader
+      const reader = new FileReader();
+      reader.onload = (readerEvent) => {
+        // Create image object
+        const image = new Image();
+        image.onload = (imageEvent) => {
+          // Create canvas or use provided canvas
+          const canvas = document.createElement('canvas');
+          const maxWidth = this.props.maxWidth || image.width;
+          const maxHeight = this.props.maxHeight || image.height;
+          canvas.width = maxWidth;
+          canvas.height = maxHeight;
+          // Calculate scaling
+          const horizontalScale = maxWidth / image.width;
+          const verticalScale = maxHeight / image.height;
+          const scale = Math.max(horizontalScale, verticalScale);
+          // Calculate cropping
+          const [width, height] = [scale * image.width, scale * image.height];
+          const verticalOffset = Math.min((maxHeight - height) / 2, 0);
+          const horizontalOffset = Math.min((maxWidth - width) / 2, 0);
+          // Obtain the context for a 2d drawing
+          const context = canvas.getContext('2d');
+          if (!context) {
+            return reject('Could not get the context of the canvas element');
+          }
+          // Draw the resized and cropped image
+          context.drawImage(image, horizontalOffset, verticalOffset, width, height);
+          canvas.toBlob((blob) => {
+            resolve(blob);
+          }, file.type);
+        }
+        image.src = readerEvent.target.result;
+      }
+      reader.readAsDataURL(file);
+    });
+  }
+
 	handleFileSelection = (event: Object) => {
-    if (event.target.files[0]) {
-		  this.startUpload(event.target.files[0]);
+    const file = event.target.files[0];
+    if (file) {
+		  this.startUpload(file);
     }
 	};
 
@@ -116,6 +167,8 @@ export default class FirebaseFileUploader extends Component {
       randomizeFilename,
       metadata,
       filename,
+      maxWidth,
+      maxHeight,
       as,
       ...props,
 		} = this.props;
