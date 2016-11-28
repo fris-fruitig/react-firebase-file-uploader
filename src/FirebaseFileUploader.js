@@ -5,6 +5,7 @@
 
 import React, { Component } from 'react';
 import { v4 as generateID } from 'uuid';
+import './polyfill'; // polyfill for canvas.toBlob function
 
 function generateRandomFilename(currentFilename: string): string {
 	const extension = /(?:\.([^.]+))?$/.exec(currentFilename)[0];
