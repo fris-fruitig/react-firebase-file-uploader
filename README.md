@@ -12,6 +12,10 @@ A file uploader for react that uploads images, videos and other files to your fi
   * `metadata` - An object with the metadata that should be added to the file. You can use this for example to configure caching for your file with `metadata={{cacheControl: 'max-age=3600'}}`.
   * `randomizeFilename` - If true, generates a random filename for your file.
   * `as` - The component you provide in this prop will be rendered instead of the standard html `input`.
+  * `maxHeight` - The maximum height of in case an image is provided, please see below for more explanation.
+  * `maxWidth` - The maximum width in case a image is provided.
+    The image will be scaled down, such that the image is contained in the maxWidth/maxHeight region.
+    The resulting image will be centered and the parts that stick out will be cropped off.
   * Default props of a html `input` such as `accept`, `disabled`, `form`, `formNoValidate`, `name`, `readOnly`, `required`, `value`
 
 ## Prerequisites
