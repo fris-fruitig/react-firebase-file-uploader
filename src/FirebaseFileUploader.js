@@ -5,19 +5,34 @@
 
 import React, { Component } from 'react';
 import { v4 as generateID } from 'uuid';
-import './polyfill'; // polyfill for canvas.toBlob function
 
 function generateRandomFilename(currentFilename: string): string {
-	const extension = /(?:\.([^.]+))?$/.exec(currentFilename)[0];
+  const extension = /(?:\.([^.]+))?$/.exec(currentFilename)[0];
   return generateID() + extension;
 }
 
+function addToBlobPolyfill() {
+  Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
+    value: function(callback, type, quality) {
+      var binStr = atob(this.toDataURL(type, quality).split(',')[1]),
+        len = binStr.length,
+        arr = new Uint8Array(len);
+
+      for (var i = 0; i < len; i++) {
+        arr[i] = binStr.charCodeAt(i);
+      }
+
+      callback(new Blob([arr], { type: type || 'image/png' }));
+    }
+  });
+}
+
 type Props = {
-	storageRef: Object,
-	onUploadStart?: (file: Object) => void,
-	onProgress?: (progress: number) => void,
-	onUploadSuccess?: (filename: string) => void,
-	onUploadError?: (error: FirebaseStorageError) => void,
+  storageRef: Object,
+  onUploadStart?: (file: Object) => void,
+  onProgress?: (progress: number) => void,
+  onUploadSuccess?: (filename: string) => void,
+  onUploadError?: (error: FirebaseStorageError) => void,
   filename?: string,
   metadata?: Object,
   randomizeFilename?: boolean,
@@ -32,94 +47,105 @@ type Props = {
   name?: string,
   readOnly?: boolean,
   required?: boolean,
-  value?: string,
+  value?: string
 };
 
 export default class FirebaseFileUploader extends Component {
-	props: Props;
-	uploadTask: ?Object;
+  props: Props;
+  uploadTask: ?Object;
 
-	// Cancel upload if quiting
-	componentWillUnmount() {
-		this.cancelRunningUpload();
-	}
+  // Cancel upload if quiting
+  componentWillUnmount() {
+    this.cancelRunningUpload();
+  }
 
-	cancelRunningUpload() {
-		if (this.uploadTask) {
-			if (this.uploadTask.snapshot.state === 'running') {
-				this.uploadTask.cancel();
+  cancelRunningUpload() {
+    if (this.uploadTask) {
+      if (this.uploadTask.snapshot.state === 'running') {
+        this.uploadTask.cancel();
         this.uploadTask = null;
-			}
-		}
-	};
+      }
+    }
+  }
 
-	startUpload(file: File) {
-		// Cancel any running tasks
-		this.cancelRunningUpload();
+  startUpload(file: File) {
+    // Cancel any running tasks
+    this.cancelRunningUpload();
 
     const {
       onUploadStart,
       storageRef,
       metadata,
       randomizeFilename,
-      filename,
+      filename
     } = this.props;
 
-		if (onUploadStart) {
-			onUploadStart(file);
-		}
+    if (onUploadStart) {
+      onUploadStart(file);
+    }
 
     const currentFilename = filename || file.name;
-    const filenameToUse = randomizeFilename ? generateRandomFilename(currentFilename) : currentFilename;
+    const filenameToUse = randomizeFilename
+      ? generateRandomFilename(currentFilename)
+      : currentFilename;
 
-    Promise.resolve().then(() => {
-      const shouldResize = file.type.match(/image.*/) && (this.props.maxWidth || this.props.maxHeight);
-      if (shouldResize) {
-        return this.resizeAndCropImage(file);
-      }
-      return file;
-    })
+    Promise.resolve()
+      .then(() => {
+        const shouldResize =
+          file.type.match(/image.*/) &&
+          (this.props.maxWidth || this.props.maxHeight);
+        if (shouldResize) {
+          return this.resizeAndCropImage(file);
+        }
+        return file;
+      })
       .then(file => {
         this.uploadTask = storageRef.child(filenameToUse).put(file, metadata);
-        this.uploadTask.on('state_changed',
+        this.uploadTask.on(
+          'state_changed',
           this.progressHandler,
           this.errorHandler,
-          this.successHandler,
+          this.successHandler
         );
-      })
-	};
+      });
+  }
 
-	progressHandler = (snapshot: Object) => {
-		const progress = Math.round(100 * snapshot.bytesTransferred / snapshot.totalBytes);
-		if (this.props.onProgress) {
-			this.props.onProgress(progress);
-		}
-	};
+  progressHandler = (snapshot: Object) => {
+    const progress = Math.round(
+      100 * snapshot.bytesTransferred / snapshot.totalBytes
+    );
+    if (this.props.onProgress) {
+      this.props.onProgress(progress);
+    }
+  };
 
-	successHandler = () => {
-		if (!this.uploadTask) {
-			return;
-		}
-		const filename = this.uploadTask.snapshot.metadata.name;
-		if (this.props.onUploadSuccess) {
-			this.props.onUploadSuccess(filename);
-		}
-	};
+  successHandler = () => {
+    if (!this.uploadTask) {
+      return;
+    }
+    const filename = this.uploadTask.snapshot.metadata.name;
+    if (this.props.onUploadSuccess) {
+      this.props.onUploadSuccess(filename);
+    }
+  };
 
-	errorHandler = (error: FirebaseStorageError) => {
-		if (this.props.onUploadError) {
-			this.props.onUploadError(error);
-		}
-	};
+  errorHandler = (error: FirebaseStorageError) => {
+    if (this.props.onUploadError) {
+      this.props.onUploadError(error);
+    }
+  };
 
   resizeAndCropImage(file: File) {
+    if (!HTMLCanvasElement.prototype.toBlob) {
+      addToBlobPolyfill();
+    }
     return new Promise((resolve, reject) => {
       // Create file reader
       const reader = new FileReader();
-      reader.onload = (readerEvent) => {
+      reader.onload = readerEvent => {
         // Create image object
         const image = new Image();
-        image.onload = (imageEvent) => {
+        image.onload = imageEvent => {
           // Create canvas or use provided canvas
           const canvas = document.createElement('canvas');
           const maxWidth = this.props.maxWidth || image.width;
@@ -140,26 +166,32 @@ export default class FirebaseFileUploader extends Component {
             return reject('Could not get the context of the canvas element');
           }
           // Draw the resized and cropped image
-          context.drawImage(image, horizontalOffset, verticalOffset, width, height);
-          canvas.toBlob((blob) => {
+          context.drawImage(
+            image,
+            horizontalOffset,
+            verticalOffset,
+            width,
+            height
+          );
+          canvas.toBlob(blob => {
             resolve(blob);
           }, file.type);
-        }
+        };
         image.src = readerEvent.target.result;
-      }
+      };
       reader.readAsDataURL(file);
     });
   }
 
-	handleFileSelection = (event: Object) => {
+  handleFileSelection = (event: Object) => {
     const file = event.target.files[0];
     if (file) {
-		  this.startUpload(file);
+      this.startUpload(file);
     }
-	};
+  };
 
-	render() {
-		const {
+  render() {
+    const {
       storageRef,
       onUploadStart,
       onProgress,
@@ -171,24 +203,13 @@ export default class FirebaseFileUploader extends Component {
       maxWidth,
       maxHeight,
       as,
-      ...props,
-		} = this.props;
+      ...props
+    } = this.props;
 
     if (as) {
       const Input = as;
-      return (
-        <Input
-          onChange={this.handleFileSelection}
-          {...props}
-        />
-      );
+      return <Input onChange={this.handleFileSelection} {...props} />;
     }
-    return (
-      <input
-        type="file"
-        onChange={this.handleFileSelection}
-        {...props}
-      />
-    );
-	}
+    return <input type="file" onChange={this.handleFileSelection} {...props} />;
+  }
 }
