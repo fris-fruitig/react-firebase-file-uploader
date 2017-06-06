@@ -4,11 +4,12 @@
  */
 
 import React, { Component } from 'react';
-import { v4 as generateID } from 'uuid';
+import { v4 as generateRandomID } from 'uuid';
 
-function generateRandomFilename(currentFilename: string): string {
-  const extension = /(?:\.([^.]+))?$/.exec(currentFilename)[0];
-  return generateID() + extension;
+const generateRandomFilename = (): string => generateRandomID();
+
+function extractExtension(filename: string): string {
+  return /(?:\.([^.]+))?$/.exec(filename)[0];
 }
 
 function addToBlobPolyfill() {
@@ -84,10 +85,16 @@ export default class FirebaseFileUploader extends Component {
       onUploadStart(file);
     }
 
-    const currentFilename = filename || file.name;
-    const filenameToUse = randomizeFilename
-      ? generateRandomFilename(currentFilename)
-      : currentFilename;
+    const generateFilename = randomizeFilename
+      ? generateRandomFilename : (typeof filename === 'function' && filename);
+
+    let filenameToUse = generateFilename
+      ? generateFilename(file) : (filename || file.name);
+
+    // Ensure there is an extension in the filename
+    if (!extractExtension(filenameToUse)) {
+      filenameToUse += extractExtension(file.name);
+    }
 
     Promise.resolve()
       .then(() => {
