@@ -1,6 +1,6 @@
 {
   "name": "react-firebase-file-uploader",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "A file uploader for react that uploads files to your firebase storage",
   "main": "lib/index.js",
   "scripts": {
