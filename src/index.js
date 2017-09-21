@@ -26,7 +26,7 @@ export type Props = {
   maxWidth?: number,
   maxHeight?: number,
   style?: Object,
-  renderButton?: Function,
+  hidden?: boolean,
   // default input props
   id?: string,
   accept?: string,
@@ -73,10 +73,12 @@ export default class FirebaseFileUploader extends Component<Props> {
     }
 
     const generateFilename = randomizeFilename
-      ? generateRandomFilename : (typeof filename === 'function' && filename);
+      ? generateRandomFilename
+      : typeof filename === 'function' && filename;
 
     let filenameToUse = generateFilename
-      ? generateFilename() : (filename || file.name);
+      ? generateFilename()
+      : filename || file.name;
 
     // Ensure there is an extension in the filename
     if (!extractExtension(filenameToUse)) {
@@ -89,7 +91,11 @@ export default class FirebaseFileUploader extends Component<Props> {
           file.type.match(/image.*/) &&
           (this.props.maxWidth || this.props.maxHeight);
         if (shouldResize) {
-          return resizeAndCropImage(file, this.props.maxWidth, this.props.maxHeight);
+          return resizeAndCropImage(
+            file,
+            this.props.maxWidth,
+            this.props.maxHeight
+          );
         }
         return file;
       })
@@ -148,22 +154,29 @@ export default class FirebaseFileUploader extends Component<Props> {
       filename,
       maxWidth,
       maxHeight,
+      hidden,
       as: Input = 'input',
-      renderButton,
       ...props
     } = this.props;
 
-    const style = renderButton ? Object.assign({}, props.style, {
-      width: '0.1px',
-      height: '0.1px',
-      opacity: 0,
-      overflow: 'hidden',
-      position: 'absolute',
-      zIndex: -1
-    }) : props.style;
+    const inputStyle = hidden
+      ? Object.assign({}, props.style, {
+          width: '0.1px',
+          height: '0.1px',
+          opacity: 0,
+          overflow: 'hidden',
+          position: 'absolute',
+          zIndex: -1
+        })
+      : props.style;
 
-    const input = <Input type="file" onChange={this.handleFileSelection} {...props} style={style} />;
-
-    return renderButton ? <label style={{display: 'inline-block', cursor: 'pointer'}}>{renderButton()}{input}</label> : input;
+    return (
+      <Input
+        type="file"
+        onChange={this.handleFileSelection}
+        {...props}
+        style={inputStyle}
+      />
+    );
   }
 }

@@ -1,11 +1,11 @@
 // @flow
 import addToBlobPolyfill from './polyfill';
 
-export default function resizeAndCropImage(file: File, w: number, h: number) {
+export default function resizeAndCropImage(file: File, w?: number, h?: number): Promise<Blob> {
   if (!HTMLCanvasElement.prototype.toBlob) {
     addToBlobPolyfill();
   }
-  return new Promise<Blob, void>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     // Create file reader
     const reader = new FileReader();
     reader.onload = readerEvent => {
