@@ -4,9 +4,9 @@ A file uploader for react that uploads images, videos and other files to your fi
 ## Props
 
   * `storageRef` (required) - A reference to the firebase storage folder, where the file should be saved.
-  * `onUploadStart` - A callback function that is called with the selected file as its only argument.
-  * `onProgress` - A callback function that is called with the progress (between 0 and 100) as its only argument.
-  * `onUploadSuccess` - A callback function that is called with the filename of the uploaded file.
+  * `onUploadStart` - A callback function that is called with the selected file as its first argument and the upload task as its second argument.
+  * `onProgress` - A callback function that is called with the progress (between 0 and 100) as its first argument and the upload task as its second argument.
+  * `onUploadSuccess` - A callback function that is called with the filename of the uploaded file as its first argument and the upload task as its second argument.
   * `onUploadError` - A callback function that is called with a [Firebase error](https://firebase.google.com/docs/storage/web/handle-errors) in case of an error during the upload process.
   * `filename` - The name you would like to give to the file. This can either be a function or a string. If a function is provided, it will be called with the selected file as its first and only argument. If no value is provided, it will use the filename of the file itself or a random generated name if `randomizeFilename` is set to true.
   * `metadata` - An object with the metadata that should be added to the file. You can use this for example to configure caching for your file with `metadata={{cacheControl: 'max-age=3600'}}`.
@@ -17,7 +17,7 @@ A file uploader for react that uploads images, videos and other files to your fi
   * `maxWidth` - The maximum width in case a image is provided.
     The image will be scaled down, such that the image is contained in the maxWidth/maxHeight region.
     The resulting image will be centered and the parts that stick out will be cropped off.
-  * Default props of a html `input` such as `accept`, `disabled`, `form`, `formNoValidate`, `name`, `readOnly`, `required`, `value`
+  * Default props of a html `input` such as `accept`, `disabled`, `form`, `formNoValidate`, `name`, `readOnly`, `required`, `value`, `multiple`.
 
 ## Prerequisites
 Make sure you have initialized firebase somewhere in your app using:
