@@ -21,8 +21,16 @@ const CustomUploadButton = (props: Props) => {
     ...inputProps
   } = props;
 
+  const buttonStyle = Object.assign(
+    {},
+    {
+      pointer: 'cursor'
+    },
+    style
+  );
+
   return (
-    <label style={style} className={className} htmlFor={htmlFor}>
+    <label style={buttonStyle} className={className} htmlFor={htmlFor}>
       {children}<FirebaseFileUploader hidden {...inputProps} />
     </label>
   );
