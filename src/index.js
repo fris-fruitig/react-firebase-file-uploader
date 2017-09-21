@@ -15,10 +15,10 @@ function extractExtension(filename: string): string {
 
 export type Props = {
   storageRef: Object,
-  onUploadStart?: (file: Object) => void,
-  onProgress?: (progress: number) => void,
-  onUploadSuccess?: (filename: string) => void,
-  onUploadError?: (error: Object) => void,
+  onUploadStart?: (file: Object, task: Object) => void,
+  onProgress?: (progress: number, task: Object) => void,
+  onUploadSuccess?: (filename: string, task: Object) => void,
+  onUploadError?: (error: Object, task: Object) => void,
   filename?: string,
   metadata?: Object,
   randomizeFilename?: boolean,
@@ -36,41 +36,48 @@ export type Props = {
   name?: string,
   readOnly?: boolean,
   required?: boolean,
-  value?: string
+  value?: string,
+  multiple?: boolean
 };
 
 export default class FirebaseFileUploader extends Component<Props> {
-  uploadTask: ?Object;
+  uploadTasks: Array<Object> = [];
 
-  // Cancel upload if quiting
+  // Cancel all running uploads before unmount
   componentWillUnmount() {
-    this.cancelRunningUpload();
+    this.cancelRunningUploads();
   }
 
-  cancelRunningUpload() {
-    if (this.uploadTask) {
-      if (this.uploadTask.snapshot.state === 'running') {
-        this.uploadTask.cancel();
-        this.uploadTask = null;
+  cancelRunningUploads() {
+    while (this.uploadTasks.length > 0) {
+      const task = this.uploadTasks.pop();
+      if (task.snapshot.state === 'running') {
+        task.cancel();
+      }
+    }
+  }
+
+  // Remove a specific task from the uploadTasks
+  removeTask(task: Object) {
+    for (let i = 0; i < this.uploadTasks.length; i++) {
+      if (this.uploadTasks[i] === task) {
+        this.uploadTasks.splice(i, 1);
+        return;
       }
     }
   }
 
   startUpload(file: File) {
-    // Cancel any running tasks
-    this.cancelRunningUpload();
-
     const {
       onUploadStart,
+      onProgress,
+      onUploadError,
+      onUploadSuccess,
       storageRef,
       metadata,
       randomizeFilename,
       filename
     } = this.props;
-
-    if (onUploadStart) {
-      onUploadStart(file);
-    }
 
     const generateFilename = randomizeFilename
       ? generateRandomFilename
@@ -100,45 +107,37 @@ export default class FirebaseFileUploader extends Component<Props> {
         return file;
       })
       .then(file => {
-        this.uploadTask = storageRef.child(filenameToUse).put(file, metadata);
-        this.uploadTask.on(
+        const task = storageRef.child(filenameToUse).put(file, metadata);
+
+        if (onUploadStart) {
+          onUploadStart(file, task);
+        }
+
+        task.on(
           'state_changed',
-          this.progressHandler,
-          this.errorHandler,
-          this.successHandler
+          snapshot =>
+            onProgress &&
+            onProgress(
+              Math.round(100 * snapshot.bytesTransferred / snapshot.totalBytes),
+              task
+            ),
+          error => onUploadError && onUploadError(error, task),
+          () => {
+            this.removeTask(task);
+            return (
+              onUploadSuccess &&
+              onUploadSuccess(task.snapshot.metadata.name, task)
+            );
+          }
         );
+        this.uploadTasks.push(task);
       });
   }
 
-  progressHandler = (snapshot: Object) => {
-    const progress = Math.round(
-      100 * snapshot.bytesTransferred / snapshot.totalBytes
-    );
-    if (this.props.onProgress) {
-      this.props.onProgress(progress);
-    }
-  };
-
-  successHandler = () => {
-    if (!this.uploadTask) {
-      return;
-    }
-    const filename = this.uploadTask.snapshot.metadata.name;
-    if (this.props.onUploadSuccess) {
-      this.props.onUploadSuccess(filename);
-    }
-  };
-
-  errorHandler = (error: Object) => {
-    if (this.props.onUploadError) {
-      this.props.onUploadError(error);
-    }
-  };
-
   handleFileSelection = (event: Object) => {
-    const file = event.target.files[0];
-    if (file) {
-      this.startUpload(file);
+    const { target: { files } } = event;
+    for (let i = 0; i < files.length; i++) {
+      this.startUpload(files[i]);
     }
   };
 
