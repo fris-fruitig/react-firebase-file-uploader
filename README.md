@@ -22,7 +22,7 @@ A file uploader for react that uploads images, videos and other files to your fi
 ## Prerequisites
 Make sure you have initialized firebase somewhere in your app using:
 
-``` javascript
+``` jsx
 import firebase from 'firebase';
 
 const config = {
@@ -36,7 +36,7 @@ firebase.initializeApp(config);
 
 ## Example
 
-``` javascript
+``` jsx
 import React, { Component } from 'react';
 import firebase from 'firebase';
 import FileUploader from 'react-firebase-file-uploader';
@@ -99,7 +99,7 @@ Most of the times the default html input element doesn't look very nice. There a
 
 #### Wrapping the input in a label
 You can render a custom button by wrapping the upload component in a `label` as follows:
-``` javascript
+``` jsx
 ...
   <label style={{backgroundColor: 'steelblue', color: 'white', padding: 10, borderRadius: 4, pointer: 'cursor'}}>
     Select your awesome avatar
@@ -124,7 +124,7 @@ The above code will render this:
 #### Using the `CustomUploadButton` component
 There is a littel helper component that you can find in `'react-firebase-file-uploader/lib/CustomUploadButton'`. This component will wrap the input in a label for you and automatically adds the `pointer` type for the cursor and the `htmlFor` prop based on the id that you provide. The label can be styled using the `style` or `className` prop like this:
 
-``` javascript
+``` jsx
 ...
 import CustomUploadButton from 'react-firebase-file-uploader/lib/CustomUploadButton';
 ...
@@ -147,7 +147,7 @@ This will result in the same rendered button as the [wrap example](#wrapping-the
 ### Generate a filename
 If you would like to generate a filename yourself you can provide a function as `filename` attribute:
 
-``` javascript
+``` jsx
 ...
   <FileUploader
     accept="image/*"
