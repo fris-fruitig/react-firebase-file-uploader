@@ -19,7 +19,7 @@ export type Props = {
   onProgress?: (progress: number, task: Object) => void,
   onUploadSuccess?: (filename: string, task: Object) => void,
   onUploadError?: (error: Object, task: Object) => void,
-  filename?: string,
+  filename?: string | (file: File) => string,
   metadata?: Object,
   randomizeFilename?: boolean,
   as?: any,
@@ -79,13 +79,13 @@ export default class FirebaseFileUploader extends Component<Props> {
       filename
     } = this.props;
 
-    const generateFilename = randomizeFilename
-      ? generateRandomFilename
-      : typeof filename === 'function' && filename;
-
-    let filenameToUse = generateFilename
-      ? generateFilename()
-      : filename || file.name;
+    let filenameToUse;
+    if (filename) {
+      filenameToUse = typeof filename === 'function' ? filename(file) : filename;
+    }
+    else {
+      filenameToUse = randomizeFilename ? generateRandomFilename() : file.name;
+    }
 
     // Ensure there is an extension in the filename
     if (!extractExtension(filenameToUse)) {
