@@ -67,7 +67,7 @@ export default class FirebaseFileUploader extends Component<Props> {
 
   startUpload(file: File) {
     const {
-      beforeUploadStart = file => Promise.resolve(file),
+      beforeUploadStart = file => file,
       onUploadStart,
       onProgress,
       onUploadError,
@@ -91,35 +91,37 @@ export default class FirebaseFileUploader extends Component<Props> {
       filenameToUse += extractExtension(file.name);
     }
 
-    beforeUploadStart(file).then((preprocessedFile = file) => {
-      const task = storageRef
-        .child(filenameToUse)
-        .put(preprocessedFile, metadata);
+    Promise.resolve(file)
+      .then(beforeUploadStart)
+      .then((preprocessedFile = file) => {
+        const task = storageRef
+          .child(filenameToUse)
+          .put(preprocessedFile, metadata);
 
-      if (onUploadStart) {
-        onUploadStart(preprocessedFile, task);
-      }
-
-      task.on(
-        'state_changed',
-        snapshot =>
-          onProgress &&
-          onProgress(
-            Math.round(100 * snapshot.bytesTransferred / snapshot.totalBytes),
-            task
-          ),
-        error => onUploadError && onUploadError(error, task),
-        () => {
-          this.removeTask(task);
-          return (
-            onUploadSuccess &&
-            onUploadSuccess(task.snapshot.metadata.name, task)
-          );
+        if (onUploadStart) {
+          onUploadStart(preprocessedFile, task);
         }
-      );
 
-      this.uploadTasks.push(task);
-    }, onUploadError);
+        task.on(
+          'state_changed',
+          snapshot =>
+            onProgress &&
+            onProgress(
+              Math.round(100 * snapshot.bytesTransferred / snapshot.totalBytes),
+              task
+            ),
+          error => onUploadError && onUploadError(error, task),
+          () => {
+            this.removeTask(task);
+            return (
+              onUploadSuccess &&
+              onUploadSuccess(task.snapshot.metadata.name, task)
+            );
+          }
+        );
+
+        this.uploadTasks.push(task);
+      }, onUploadError);
   }
 
   handleFileSelection = (event: Object) => {
