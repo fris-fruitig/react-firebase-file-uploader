@@ -19,7 +19,7 @@ export type Props = {
   onProgress?: (progress: number, task: Object) => void,
   onUploadSuccess?: (filename: string, task: Object) => void,
   onUploadError?: (error: Object, task?: Object) => void,
-  filename?: string | (file: File) => string,
+  filename?: string | ((file: File) => string),
   metadata?: Object,
   randomizeFilename?: boolean,
   as?: any,
@@ -80,9 +80,9 @@ export default class FirebaseFileUploader extends Component<Props> {
 
     let filenameToUse;
     if (filename) {
-      filenameToUse = typeof filename === 'function' ? filename(file) : filename;
-    }
-    else {
+      filenameToUse =
+        typeof filename === 'function' ? filename(file) : filename;
+    } else {
       filenameToUse = randomizeFilename ? generateRandomFilename() : file.name;
     }
 
@@ -91,30 +91,35 @@ export default class FirebaseFileUploader extends Component<Props> {
       filenameToUse += extractExtension(file.name);
     }
 
-    beforeUploadStart(file)
-      .then(preprocessedFile => {
-        const task = storageRef.child(filenameToUse).put(preprocessedFile, metadata);
+    beforeUploadStart(file).then(preprocessedFile => {
+      const task = storageRef
+        .child(filenameToUse)
+        .put(preprocessedFile, metadata);
 
-        if (onUploadStart) {
-          onUploadStart(preprocessedFile, task);
-        }
+      if (onUploadStart) {
+        onUploadStart(preprocessedFile, task);
+      }
 
-        const handleProgress = onProgress && (snapshot => onProgress(
-          Math.round(100 * snapshot.bytesTransferred / snapshot.totalBytes),
-          task
-        ));
-        const handleError = onUploadError && (error => onUploadError(error, task));
-        const handleSuccess = () => {
+      task.on(
+        'state_changed',
+        snapshot =>
+          onProgress &&
+          onProgress(
+            Math.round(100 * snapshot.bytesTransferred / snapshot.totalBytes),
+            task
+          ),
+        error => onUploadError && onUploadError(error, task),
+        () => {
           this.removeTask(task);
-          if (onUploadSuccess) {
-            onUploadSuccess(task.snapshot.metadata.name, task);
-          }
-        };
+          return (
+            onUploadSuccess &&
+            onUploadSuccess(task.snapshot.metadata.name, task)
+          );
+        }
+      );
 
-        task.on('state_changed', handleProgress, handleError, handleSuccess);
-
-        this.uploadTasks.push(task);
-      }, onUploadError)
+      this.uploadTasks.push(task);
+    }, onUploadError);
   }
 
   handleFileSelection = (event: Object) => {
