@@ -91,7 +91,7 @@ export default class FirebaseFileUploader extends Component<Props> {
       filenameToUse += extractExtension(file.name);
     }
 
-    beforeUploadStart(file).then(preprocessedFile => {
+    beforeUploadStart(file).then((preprocessedFile = file) => {
       const task = storageRef
         .child(filenameToUse)
         .put(preprocessedFile, metadata);
