@@ -30,8 +30,8 @@
   },
   "homepage": "https://github.com/sprmn/react-firebase-file-uploader#readme",
   "peerDependencies": {
-    "firebase": "^3.5.2",
-    "react": "^15.3.2"
+    "firebase": "^4.8.1",
+    "react": "^16.2.0",
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
