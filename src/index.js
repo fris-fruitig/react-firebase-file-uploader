@@ -4,7 +4,7 @@
  */
 
 import React, { Component } from 'react';
-import { v4 as generateRandomID } from 'uuid';
+import generateRandomID from 'uuid/v4';
 import resizeAndCropImage from './utils/image';
 
 const generateRandomFilename = (): string => generateRandomID();
