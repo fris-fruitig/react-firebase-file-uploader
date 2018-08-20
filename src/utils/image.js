@@ -1,8 +1,6 @@
 // @flow
 import addToBlobPolyfill from "./polyfill";
 
-// const determineAspectRatio
-
 export default function resizeAndCropImage(
   file: File,
   w?: number,
