@@ -18,6 +18,7 @@ A file uploader for react that uploads images, videos and other files to your fi
 - `maxWidth` - The maximum width in case a image is provided.
   The image will be scaled down, such that the image is contained in the maxWidth/maxHeight region.
   The resulting image will be centered and the parts that stick out will be cropped off.
+- `quality` - Decimal value representing the fidelity of the image, e.g. 0.9 = 90% quality
 - Default props of a html `input` such as `accept`, `disabled`, `form`, `formNoValidate`, `name`, `readOnly`, `required`, `value`, `multiple`.
 
 ## Prerequisites
