@@ -1,7 +1,13 @@
 // @flow
-import addToBlobPolyfill from './polyfill';
+import addToBlobPolyfill from "./polyfill";
 
-export default function resizeAndCropImage(file: File, w?: number, h?: number): Promise<Blob> {
+// const determineAspectRatio
+
+export default function resizeAndCropImage(
+  file: File,
+  w?: number,
+  h?: number
+): Promise<Blob> {
   if (!HTMLCanvasElement.prototype.toBlob) {
     addToBlobPolyfill();
   }
@@ -12,10 +18,23 @@ export default function resizeAndCropImage(file: File, w?: number, h?: number): 
       // Create image object
       const image = new Image();
       image.onload = imageEvent => {
+        const canvas = document.createElement("canvas");
+        let maxWidth;
+        let maxHeight;
+        // Calculate height based on provided width
+        if (w && !h) {
+          maxWidth = Math.min(w, image.width);
+          maxHeight = image.height / (image.width / maxWidth);
+          // Calculate width based on provided height
+        } else if (h && !w) {
+          maxHeight = Math.min(h, image.height);
+          maxWidth = image.width / (image.height / maxHeight);
+          // Otherwise use provided width and height or the image width and height (whichever is smaller)
+        } else {
+          maxWidth = Math.min(w, image.width);
+          maxHeight = Math.min(h, image.height);
+        }
         // Create canvas or use provided canvas
-        const canvas = document.createElement('canvas');
-        const maxWidth = w || image.width;
-        const maxHeight = h || image.height;
         canvas.width = maxWidth;
         canvas.height = maxHeight;
         // Calculate scaling
@@ -27,9 +46,9 @@ export default function resizeAndCropImage(file: File, w?: number, h?: number): 
         const verticalOffset = Math.min((maxHeight - height) / 2, 0);
         const horizontalOffset = Math.min((maxWidth - width) / 2, 0);
         // Obtain the context for a 2d drawing
-        const context = canvas.getContext('2d');
+        const context = canvas.getContext("2d");
         if (!context) {
-          return reject('Could not get the context of the canvas element');
+          return reject("Could not get the context of the canvas element");
         }
         // Draw the resized and cropped image
         context.drawImage(
