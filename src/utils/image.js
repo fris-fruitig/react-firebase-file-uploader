@@ -94,15 +94,16 @@ function imgToCanvasWithOrientation(
 
 export default function resizeAndCropImage(
   file: File,
-  w?: number,
-  h?: number,
+  maxWidth?: number,
+  maxHeight?: number,
   quality?: number
 ): Promise<Blob> {
   if (!HTMLCanvasElement.prototype.toBlob) {
     addToBlobPolyfill();
   }
   return new Promise((resolve, reject) => {
-    quality = quality || 1;
+    quality = quality ? Math.min(quality, 1) : 1;
+
     // Create file reader
     const reader = new FileReader();
     reader.onload = readerEvent => {
@@ -110,31 +111,21 @@ export default function resizeAndCropImage(
       const image = new Image();
       image.onload = imageEvent => {
         getExifOrientation(file).then(orientation => {
-          let maxWidth;
-          let maxHeight;
-          if (w && !h) {
-            // Calculate height based on provided width
-            maxWidth = Math.min(w, image.width);
-            maxHeight = image.height / (image.width / maxWidth);
-          } else if (h && !w) {
-            // Calculate width based on provided height
-            maxHeight = Math.min(h, image.height);
-            maxWidth = image.width / (image.height / maxHeight);
+          let width;
+          let height;
+          if (maxWidth && !maxHeight) {
+            // Calculate height based on maximum width
+            width = Math.min(maxWidth, image.width);
+            height = image.height / (image.width / width);
+          } else if (maxHeight && !maxWidth) {
+            // Calculate width based on maximum height
+            height = Math.min(maxHeight, image.height);
+            width = image.width / (image.height / height);
           } else {
-            // Otherwise use provided width and height or the image width and height (whichever is smaller)
-            maxWidth = Math.min(w, image.width);
-            maxHeight = Math.min(h, image.height);
+            // Otherwise use provided maximum values or the image dimensions (whichever is smaller)
+            width = Math.min(maxWidth, image.width);
+            height = Math.min(maxHeight, image.height);
           }
-
-          let width = image.width;
-          let height = image.height;
-          const scale =
-            orientation > 4
-              ? Math.min(maxHeight / width, maxWidth / height, 1)
-              : Math.min(maxWidth / width, maxHeight / height, 1);
-          height = Math.round(height * scale);
-          width = Math.round(width * scale);
-
           const canvas = imgToCanvasWithOrientation(
             image,
             width,
