@@ -98,7 +98,6 @@ export default class FirebaseFileUploader extends Component<Props> {
           file.type.match(/image.*/) &&
           (this.props.maxWidth || this.props.maxHeight);
         if (shouldResize) {
-          console.log("this.props.quality", this.props.quality);
           return resizeAndCropImage(
             file,
             this.props.maxWidth,
