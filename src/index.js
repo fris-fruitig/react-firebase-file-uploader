@@ -10,8 +10,14 @@ import resizeAndCropImage from './utils/image';
 const generateRandomFilename = (): string => generateRandomID();
 
 function extractExtension(filename: string): string {
-  return /(?:\.([^.]+))?$/.exec(filename)[0];
+  let ext = /(?:\.([^.]+))?$/.exec(filename);
+  if (ext != null && ext[0] != null) {
+    return ext[0]
+  } else {
+    return ''
+  }
 }
+
 
 export type Props = {
   storageRef: Object,
