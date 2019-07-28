@@ -178,6 +178,7 @@ export default class FirebaseFileUploader extends Component<Props> {
     return (
       <Input
         type="file"
+        onClick={ e => { e.target.value = null } } 
         onChange={this.handleFileSelection}
         {...props}
         style={inputStyle}
