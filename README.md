@@ -113,7 +113,7 @@ You can render a custom button by wrapping the upload component in a `label` as 
 
 ```jsx
 ...
-  <label style={{backgroundColor: 'steelblue', color: 'white', padding: 10, borderRadius: 4, pointer: 'cursor'}}>
+  <label style={{backgroundColor: 'steelblue', color: 'white', padding: 10, borderRadius: 4, cursor: 'pointer'}}>
     Select your awesome avatar
     <FileUploader
       hidden
