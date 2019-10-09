@@ -3,9 +3,9 @@
  * @flow
  */
 
-import React, { Component } from 'react';
-import generateRandomID from 'uuid/v4';
-import resizeAndCropImage from './utils/image';
+import React, { Component } from "react";
+import generateRandomID from "uuid/v4";
+import resizeAndCropImage from "./utils/image";
 
 const generateRandomFilename = (): string => generateRandomID();
 
@@ -25,7 +25,7 @@ export type Props = {
   onProgress?: (progress: number, task: Object) => void,
   onUploadSuccess?: (filename: string, task: Object) => void,
   onUploadError?: (error: Object, task: Object) => void,
-  filename?: string | (file: File) => string,
+  filename?: string | ((file: File) => string),
   metadata?: Object,
   randomizeFilename?: boolean,
   as?: any,
@@ -57,7 +57,7 @@ export default class FirebaseFileUploader extends Component<Props> {
   cancelRunningUploads() {
     while (this.uploadTasks.length > 0) {
       const task = this.uploadTasks.pop();
-      if (task.snapshot.state === 'running') {
+      if (task.snapshot.state === "running") {
         task.cancel();
       }
     }
@@ -87,9 +87,9 @@ export default class FirebaseFileUploader extends Component<Props> {
 
     let filenameToUse;
     if (filename) {
-      filenameToUse = typeof filename === 'function' ? filename(file) : filename;
-    }
-    else {
+      filenameToUse =
+        typeof filename === "function" ? filename(file) : filename;
+    } else {
       filenameToUse = randomizeFilename ? generateRandomFilename() : file.name;
     }
 
@@ -107,7 +107,8 @@ export default class FirebaseFileUploader extends Component<Props> {
           return resizeAndCropImage(
             file,
             this.props.maxWidth,
-            this.props.maxHeight
+            this.props.maxHeight,
+            this.props.quality
           );
         }
         return file;
@@ -120,7 +121,7 @@ export default class FirebaseFileUploader extends Component<Props> {
         }
 
         task.on(
-          'state_changed',
+          "state_changed",
           snapshot =>
             onProgress &&
             onProgress(
@@ -160,17 +161,17 @@ export default class FirebaseFileUploader extends Component<Props> {
       maxWidth,
       maxHeight,
       hidden,
-      as: Input = 'input',
+      as: Input = "input",
       ...props
     } = this.props;
 
     const inputStyle = hidden
       ? Object.assign({}, props.style, {
-          width: '0.1px',
-          height: '0.1px',
+          width: "0.1px",
+          height: "0.1px",
           opacity: 0,
-          overflow: 'hidden',
-          position: 'absolute',
+          overflow: "hidden",
+          position: "absolute",
           zIndex: -1
         })
       : props.style;
