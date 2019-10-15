@@ -1,8 +1,6 @@
-import {Component, ComponentClass} from 'react';
+import {Component, ComponentState, Context,ValidationMap, WeakValidationMap, ChangeEventHandler} from 'react';
 
-type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
-
-export interface Props extends Omit<Partial<HTMLInputElement>, 'form'> {
+export interface Props {
   storageRef: Object,
   onUploadStart?: (file: Object, task: Object) => void,
   onProgress?: (progress: number, task: Object) => void,
@@ -26,19 +24,29 @@ export interface Props extends Omit<Partial<HTMLInputElement>, 'form'> {
   required?: boolean,
   value?: string,
   multiple?: boolean
+  onChange?: ChangeEventHandler
 }
 
-declare const FirebaseFileUploader: ComponentClass<Props> & {
-  // Due to the component class having `ref` methods used in the API,
-  // We must add these typings manually
-  new (props: Props, context?: any): Component<Props> & {
-    startUpload(file: File): void;
-    handleFileSelection(event: Object): void;
-    removeTask(task: Object): void;
-    cancelRunningUploads(): void;
-  };
+interface FileUploaderMethods {
+  startUpload(file: File): void;
+  handleFileSelection(event: Object): void;
+  removeTask(task: Object): void;
+  cancelRunningUploads(): void;
+}
+
+type FileUploaderType = {
+  // This was cloned from the @react/types typings.
+  // There does not currently seem to be a good way to append methods to the `ref` of a component otherwise
+  new(props: Props, context?: any): Component<Props, ComponentState> & FileUploaderMethods;
+  propTypes?: WeakValidationMap<Props>;
+  contextType?: Context<any>;
+  contextTypes?: ValidationMap<any>;
+  childContextTypes?: ValidationMap<any>;
+  defaultProps?: Partial<Props>;
+  displayName?: string;
 };
-export default FirebaseFileUploader;
+
+export default FileUploaderType;
 
 export type FirebaseStorageErrorCode =
   | "storage/unknown"
