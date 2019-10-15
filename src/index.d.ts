@@ -1,6 +1,8 @@
-import {ComponentType} from 'react';
+import {Component, ComponentClass} from 'react';
 
-export interface Props {
+type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
+
+export interface Props extends Omit<Partial<HTMLInputElement>, 'form'> {
   storageRef: Object,
   onUploadStart?: (file: Object, task: Object) => void,
   onProgress?: (progress: number, task: Object) => void,
@@ -12,7 +14,6 @@ export interface Props {
   as?: any,
   maxWidth?: number,
   maxHeight?: number,
-  style?: Object,
   hidden?: boolean,
   // default input props
   id?: string,
@@ -27,7 +28,16 @@ export interface Props {
   multiple?: boolean
 }
 
-declare const FirebaseFileUploader: ComponentType<Props>;
+declare const FirebaseFileUploader: ComponentClass<Props> & {
+  // Due to the component class having `ref` methods used in the API,
+  // We must add these typings manually
+  new (props: Props, context?: any): Component<Props> & {
+    startUpload(file: File): void;
+    handleFileSelection(event: Object): void;
+    removeTask(task: Object): void;
+    cancelRunningUploads(): void;
+  };
+};
 export default FirebaseFileUploader;
 
 export type FirebaseStorageErrorCode =
