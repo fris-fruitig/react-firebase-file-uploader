@@ -76,9 +76,6 @@ export default class FirebaseFileUploader extends Component<Props> {
   startUpload(file: File) {
     const {
       onUploadStart,
-      onProgress,
-      onUploadError,
-      onUploadSuccess,
       storageRef,
       metadata,
       randomizeFilename,
@@ -122,17 +119,17 @@ export default class FirebaseFileUploader extends Component<Props> {
         task.on(
           'state_changed',
           snapshot =>
-            onProgress &&
-            onProgress(
+            this.props.onProgress &&
+            this.props.onProgress(
               Math.round(100 * snapshot.bytesTransferred / snapshot.totalBytes),
               task
             ),
-          error => onUploadError && onUploadError(error, task),
+          error => this.props.onUploadError && this.props.onUploadError(error, task),
           () => {
             this.removeTask(task);
             return (
-              onUploadSuccess &&
-              onUploadSuccess(task.snapshot.metadata.name, task)
+              this.props.onUploadSuccess &&
+              this.props.onUploadSuccess(task.snapshot.metadata.name, task)
             );
           }
         );
